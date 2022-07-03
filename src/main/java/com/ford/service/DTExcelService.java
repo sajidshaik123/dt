@@ -1,0 +1,87 @@
+package com.ford.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.ford.constants.DTConstants;
+import com.ford.model.DTFileData;
+import com.ford.repository.DTEcelRepository;
+import com.ford.utils.DTUtils;
+
+@Service
+public class DTExcelService {
+
+	@Autowired
+	DTEcelRepository dTRepository;
+
+	public List<String> getAllExcelRecords() {
+
+		List<String> response = new ArrayList<String>();
+
+		List<String> folderPathList = DTConstants.getFolderPathList();
+
+		for (String folderPath : folderPathList) {
+			List<String> fileNameList = DTUtils.getFilesNamesFromFolder(folderPath);
+			for (String fileName : fileNameList) {
+				String filePath = folderPath + "/" + fileName;
+				String fileNameWithoutExtension = DTUtils.excludeFileExtension(fileName);
+				response.add("File Name ->" + fileNameWithoutExtension);
+				response.addAll(DTUtils.getFileRecordsFromDirectory(filePath));
+				String line = "--------------------------------------------------------------------------------";
+				response.add(line);
+			}
+		}
+
+		return response;
+	}
+
+	public List<String> saveEveryExcelRecordsToDataBase() {
+		List<String> response = new ArrayList<String>();
+		List<String> folderPathList = DTConstants.getFolderPathList();
+
+		List<DTFileData> dTFileExcelRowsList = new ArrayList<DTFileData>();
+		List<String> fileNameListForAllDirectories = new ArrayList<String>();
+		for (String folderPath : folderPathList) {
+			List<String> fileNameList = DTUtils.getFilesNamesFromFolder(folderPath);
+			fileNameListForAllDirectories.addAll(fileNameList);
+			if (CollectionUtils.isEmpty(fileNameList)) {
+				response.add("Empty files under " + folderPathList);
+				return response;
+			}
+			for (String fileName : fileNameList) {
+				String filePath = folderPath + "/" + fileName;
+				List<String> fileRecordsFromDirectory = DTUtils.getFileRecordsFromDirectory(filePath);
+				if (CollectionUtils.isNotEmpty(fileNameList)) {
+					for (String fileRecord : fileRecordsFromDirectory) {
+						DTFileData dTFileExcelRowDataObject = new DTFileData();
+						dTFileExcelRowDataObject.setFileName(fileName);
+						dTFileExcelRowDataObject.setFileRowData(fileRecord);
+						dTFileExcelRowDataObject.setFilePath(filePath);
+						dTFileExcelRowsList.add(dTFileExcelRowDataObject);
+					}
+				}
+
+			}
+		}
+
+		dTRepository.truncateDTFileData();
+
+		List<DTFileData> dTFileExcelRowsDataBaseObject = dTRepository.saveAll(dTFileExcelRowsList);
+
+		for (String fileName : fileNameListForAllDirectories) {
+			response.add(fileName);
+			String line = "--------------------------------------------------------------------------------";
+			response.add(line);
+			response.addAll(dTFileExcelRowsDataBaseObject.stream().filter(f -> f.getFileName().equals(fileName))
+					.map(f -> f.getFileRowData()).collect(Collectors.toList()));
+		}
+
+		return response;
+	}
+
+}
