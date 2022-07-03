@@ -11,12 +11,9 @@ import com.ford.model.DTFileData;
 public interface DTEcelRepository extends JpaRepository<DTFileData, String> {
 
 	void deleteAllByFilePath(String lastModifiedFilePath);
-	
+
 	@Modifying
-    @Query(
-            value = "truncate table dTFile_Data",
-            nativeQuery = true
-    )
+	@Query(value = "truncate table dTFile_Data", nativeQuery = true)
 	void truncateDTFileData();
 
 }
