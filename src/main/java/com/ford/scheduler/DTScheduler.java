@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 
 import com.ford.constants.DTConstants;
 import com.ford.model.DTFileData;
-import com.ford.repository.DTEcelRepository;
+import com.ford.repository.DTExcelRepository;
 import com.ford.utils.DTUtils;
 
 @Service
 public class DTScheduler {
 
 	@Autowired
-	DTEcelRepository dTEcelRepository;
+	DTExcelRepository dTExcelRepository;
 
 	@Scheduled(cron = "*/60 * * * * *")
 	public void printLatestModifiedFiles() throws ParseException {
@@ -28,7 +28,7 @@ public class DTScheduler {
 				.getLastModifiedFilePathListBasedOnTime(DTConstants.DT_SCHEDULER_GAP);
 		if (CollectionUtils.isNotEmpty(lastModifiedFilePathList)) {
 			for (String lastModifiedFilePath : lastModifiedFilePathList) {
-				dTEcelRepository.deleteAllByFilePath(lastModifiedFilePath);
+				dTExcelRepository.deleteAllByFilePath(lastModifiedFilePath);
 				List<String> fileRecordsFromDirectory = DTUtils.getFileRecordsFromDirectory(lastModifiedFilePath);
 				for (String fileRecord : fileRecordsFromDirectory) {
 					DTFileData dTFileExcelRowDataObject = new DTFileData();
@@ -41,7 +41,7 @@ public class DTScheduler {
 		}
 
 		if (CollectionUtils.isNotEmpty(dTFileExcelRowsList)) {
-			dTEcelRepository.saveAll(dTFileExcelRowsList);
+			dTExcelRepository.saveAll(dTFileExcelRowsList);
 		}
 	}
 

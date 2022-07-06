@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -164,10 +165,12 @@ public class RestClient {
 		return exec(() -> restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseClass), responseClass);
 	}
 
-	public HttpHeaders getHttpHeaders(MediaType mdeiaType, String apiToken) {
+	public HttpHeaders getHttpHeaders(String mdeiaType, String apiToken) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(mdeiaType);
+		headers.add("Content-Type", mdeiaType);
+		headers.add("Accept", "application/json");
 		headers.add("Authorization", apiToken);
 		return headers;
 	}
+
 }

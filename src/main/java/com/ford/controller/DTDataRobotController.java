@@ -4,10 +4,16 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.ford.model.DataRobotCataLogItems;
 import com.ford.model.DataRobotCataProject;
 import com.ford.service.DTDataRobotService;
 
@@ -18,8 +24,8 @@ public class DTDataRobotController {
 	@Autowired
 	DTDataRobotService dTDataRobotService;
 
-	@GetMapping(value = "/get-all-ai-catalog-items-from")
-	public Object getCatalogItems() throws IOException {
+	@GetMapping(value = "/get-all-ai-catalog-items-from-rest")
+	public DataRobotCataLogItems getCatalogItems() throws IOException {
 		return dTDataRobotService.getCatalogItems();
 	}
 
@@ -32,5 +38,11 @@ public class DTDataRobotController {
 	public List<DataRobotCataProject> getAllAiCatalogProjectsFromDB() throws IOException {
 		return dTDataRobotService.getAllAiCatalogProjectsFromDB();
 	}
+	
+	@PostMapping("/move-to-data-robot")
+	public Object moveToDataRobot( @RequestHeader MultiValueMap<String, String> headers,@RequestParam("file") MultipartFile file) throws IOException {
+		return dTDataRobotService.moveToDataRobot(headers, file);
+	}
+	
 
 }

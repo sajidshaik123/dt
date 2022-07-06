@@ -9,12 +9,16 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ford.constants.DTConstants;
 import com.ford.model.DataRobotCataProject;
 import com.opencsv.CSVReader;
 
 public class DTUtils {
+	
+	Logger logger = LoggerFactory.getLogger(DTUtils.class);
 
 	public static List<String> getFilesNamesFromFolder(String path) {
 		ArrayList<String> fileNames = new ArrayList<>();
@@ -74,8 +78,6 @@ public class DTUtils {
 				String filePath = folderPath + "/" + fileName;
 				Date lastModifiledFileDate = DTDateUtils.getLastModifiledFileDate(filePath);
 				Date dateAfterUpdation = new Date(DTDateUtils.getTodayDate().getTime() - (seconds * 1000));
-
-				System.out.println(DTDateUtils.getTodayDateWithTime());
 				if (lastModifiledFileDate.after(dateAfterUpdation)) {
 					System.out.println(filePath + " was last modified at: " + lastModifiledFileDate.toString());
 					lastModifiedFilePathList.add(filePath);

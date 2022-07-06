@@ -5,19 +5,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ford.constants.DTConstants;
 import com.ford.model.DTFileData;
-import com.ford.repository.DTEcelRepository;
+import com.ford.repository.DTExcelRepository;
 import com.ford.utils.DTUtils;
 
 @Service
 public class DTExcelService {
 
 	@Autowired
-	DTEcelRepository dTRepository;
+	DTExcelRepository dTExcelRepository;
 
 	public List<String> getAllExcelRecords() {
 
@@ -69,9 +70,9 @@ public class DTExcelService {
 			}
 		}
 
-		dTRepository.truncateDTFileData();
+		dTExcelRepository.truncateDTFileData();
 
-		List<DTFileData> dTFileExcelRowsDataBaseObject = dTRepository.saveAll(dTFileExcelRowsList);
+		List<DTFileData> dTFileExcelRowsDataBaseObject = dTExcelRepository.saveAll(dTFileExcelRowsList);
 
 		for (String fileName : fileNameListForAllDirectories) {
 			response.add(fileName);
@@ -82,6 +83,12 @@ public class DTExcelService {
 		}
 
 		return response;
+	}
+	
+	public List<DTFileData> getAllExcelDBRecords() {
+		
+		return dTExcelRepository.findAll();
+
 	}
 
 }
