@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,11 +39,11 @@ public class DTDataRobotController {
 	public List<DataRobotCataProject> getAllAiCatalogProjectsFromDB() throws IOException {
 		return dTDataRobotService.getAllAiCatalogProjectsFromDB();
 	}
-	
+
 	@PostMapping("/move-to-data-robot")
-	public Object moveToDataRobot( @RequestHeader MultiValueMap<String, String> headers,@RequestParam("file") MultipartFile file) throws IOException {
-		return dTDataRobotService.moveToDataRobot(headers, file);
+	public ResponseEntity<String> moveToDataRobot(@RequestHeader MultiValueMap<String, String> headers,
+			@RequestParam(value = "fileName") String fileName) throws IOException {
+		return dTDataRobotService.moveToDataRobot(headers, fileName);
 	}
-	
 
 }

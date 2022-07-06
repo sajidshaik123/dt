@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ import com.ford.utils.DTUtils;
 @Service
 public class DTExcelService {
 
-	@Autowired
+	@Autowired(required = false)
 	DTExcelRepository dTExcelRepository;
 
 	public List<String> getAllExcelRecords() {

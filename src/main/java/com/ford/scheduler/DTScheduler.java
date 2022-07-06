@@ -17,10 +17,10 @@ import com.ford.utils.DTUtils;
 @Service
 public class DTScheduler {
 
-	@Autowired
+	@Autowired(required = false)
 	DTExcelRepository dTExcelRepository;
 
-	@Scheduled(cron = "*/60 * * * * *")
+	@Scheduled(fixedRate = DTConstants.DT_SCHEDULER_GAP)
 	public void printLatestModifiedFiles() throws ParseException {
 		List<DTFileData> dTFileExcelRowsList = new ArrayList<DTFileData>();
 
@@ -38,9 +38,6 @@ public class DTScheduler {
 					dTFileExcelRowsList.add(dTFileExcelRowDataObject);
 				}
 			}
-		}
-
-		if (CollectionUtils.isNotEmpty(dTFileExcelRowsList)) {
 			dTExcelRepository.saveAll(dTFileExcelRowsList);
 		}
 	}

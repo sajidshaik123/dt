@@ -1,31 +1,21 @@
 package com.ford.service;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,10 +35,10 @@ public class DTDataRobotService {
 	@Autowired
 	RestClient restClient;
 
-	@Autowired
+	@Autowired(required = false)
 	DTExcelRepository dTExcelRepository;
 
-	@Autowired
+	@Autowired(required = false)
 	DataRobotCataProjectRepository dataRobotCataProjectRepository;
 
 	public DataRobotCataLogItems getCatalogItems() throws IOException {
@@ -78,35 +68,31 @@ public class DTDataRobotService {
 		return dataRobotCataProjectsFromDb;
 	}
 
-	public Object moveToDataRobot(MultiValueMap<String, String> headers, MultipartFile file) throws IOException {
-		/*
-		 * List<DTFileData> dTFileDataObject =
-		 * dTExcelRepository.findAllByFileName(fileName); List<String> dTFileRowDataList
-		 * = dTFileDataObject.stream().map(r -> r.getFileRowData())
-		 * .collect(Collectors.toList()); String fileHeading = dTFileRowDataList.get(0);
-		 * splitStringAndReturnAsStringList(fileHeading); ArrayList<List<String>>
-		 * rowList = new ArrayList<List<String>>(); dTFileRowDataList.remove(0);
-		 */
+	public ResponseEntity<String> moveToDataRobot(MultiValueMap<String, String> headers, String fileName)
+			throws IOException {
 
-		Map<String, Object> body = new HashMap<>();
-		//body.add("file", new File("C://Users/shaik/OneDrive/Documents/ford/12.csv"));
-		//body.put("file", new ByteArrayResource(file.getBytes()));
-		headers.add("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
-		headers.add("Accept", "application/json");
-		headers.add("Authorization", DTConstants.API_TOKEN);
+		List<DTFileData> dTFileDataObject = dTExcelRepository.findAllByFileName(fileName);
+		List<String> dTFileRowDataList = dTFileDataObject.stream().map(r -> r.getFileRowData())
+				.collect(Collectors.toList());
 
-		HttpEntity<HashMap<String, Object>> requestEntity = new HttpEntity<HashMap<String, Object>>(headers);
+		List<String[]> dTFileFilteredDataList = new ArrayList<String[]>();
+		for (String eachRow : dTFileRowDataList) {
+			dTFileFilteredDataList.add(DTUtils.splitStringAndReturnAsStringArray(eachRow));
+		}
+		String tempFileDir = DTConstants.DT_TEMP_DIR + fileName;
+		try (CSVWriter writer = new CSVWriter(new FileWriter(tempFileDir))) {
+			writer.writeAll(dTFileFilteredDataList);
+		}
 
-		String serverUrl = "https://app2.datarobot.com/api/v2/datasets/fromFile";
-		ResponseEntity<String> r = restClient.postForEntity(serverUrl, requestEntity, String.class);
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("body", r.getBody());
-		response.put("statusCode", r.getStatusCodeValue());
-		return response;
+		File storeTempFile = new File(tempFileDir);
+		MultiValueMap<String, Object> body = new LinkedMultiValueMap<String, Object>();
+		body.add("file", storeTempFile);
+		
+		HttpEntity<Object> requestEntity = new HttpEntity<Object>(body, headers);
+		String serverUrl = DTConstants.DT_ENDPOINT + "/datasets/fromFile";
+		ResponseEntity<String> serverResponse = restClient.postForEntity(serverUrl, requestEntity, String.class);
+		storeTempFile.delete(); // Once upload is done then no use of storing in our directory, we can safe delete
+		return serverResponse;
 	}
 
-	private List<String> splitStringAndReturnAsStringList(String eachRow) {
-		List<String> result = Arrays.asList(eachRow.split("--"));
-		return result;
-	}
 }
